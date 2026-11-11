@@ -17,7 +17,13 @@ class DZP_Decor
 		for (int i = 0; i < parts.Count(); i++)
 		{
 			DZP_DecorPart part = parts[i];
-			Object obj = GetGame().CreateObjectEx(part.m_Type, owner.ModelToWorld(part.m_Pos), flags);
+			Object obj;
+			// a bare model (no class): placed the way the DayZ Editor places it, so the layout
+			// matches what was built there
+			if (part.m_Type.Contains(".p3d"))
+				obj = GetGame().CreateStaticObjectUsingP3D(part.m_Type, owner.ModelToWorld(part.m_Pos), ownerOri + part.m_Ori, part.m_Scale, true);
+			else
+				obj = GetGame().CreateObjectEx(part.m_Type, owner.ModelToWorld(part.m_Pos), flags);
 			if (!obj)
 			{
 				Print("[DayZPortals] can't create decor " + part.m_Type);

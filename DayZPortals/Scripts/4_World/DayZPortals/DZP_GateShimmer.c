@@ -1,9 +1,9 @@
-// Client: every frame, finds the nearest assembled gate to the camera and shimmers the air
-// around its grille (DZP_PPERequester_GateShimmer), stronger the closer you are.
+// Client: every frame, finds the nearest assembled, linked gate to the camera and shimmers the air
+// in its chamber (DZP_PPERequester_GateShimmer), stronger the closer you are.
 class DZP_GateShimmer
 {
-	static const float RANGE = 12.0;		// no shimmer beyond this many metres from the grille
-	static const float FULL_RANGE = 2.0;	// full strength inside this
+	static const float RANGE = 16.0;		// no shimmer beyond this many metres from the chamber
+	static const float FULL_RANGE = 3.0;	// full strength inside this
 	static const float MAX_DISTORT = 0.12;
 	static const float MAX_CHROM_ABB = 0.35;
 
@@ -44,9 +44,9 @@ class DZP_GateShimmer
 		for (int i = 0; i < s_Gates.Count(); i++)
 		{
 			DZP_Gate gate = s_Gates[i];
-			if (!gate || !gate.DZP_IsBuilt())
+			if (!gate || !gate.DZP_IsBuilt() || !gate.DZP_IsLinked())
 				continue;
-			vector centre = gate.DZP_RingCentre();
+			vector centre = gate.DZP_FieldCentre();
 			float d = vector.Distance(cam, centre);
 			if (d < best)
 			{
@@ -70,7 +70,7 @@ class DZP_GateShimmer
 			return;
 		}
 
-		// lens centred on the grille while it's on screen; behind you it's just a faint wobble
+		// lens centred on the chamber while it's on screen; behind you it's just a faint wobble
 		float cx = 0;
 		float cy = 0;
 		vector screen = GetGame().GetScreenPosRelative(ring);

@@ -1,4 +1,4 @@
-// Air shimmer near an assembled gate: a wobbling lens distortion centred on the grille's
+// Air shimmer near an assembled gate: a wobbling lens distortion centred on the chamber's
 // screen position, with a touch of chromatic aberration. Vanilla has no heat-haze particle
 // (its fires don't refract), so this is done in post-processing. Driven every frame by
 // DZP_GateShimmer (4_World).

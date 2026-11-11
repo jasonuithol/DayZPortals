@@ -1,6 +1,6 @@
-// Where the vanilla pieces of the gate go, relative to the control cabinet (DZP_Gate's own
-// model, origin on the floor). The ring is the plate players touch to jump; its local
-// position also defines the trigger box and the arrival point.
+// Where the vanilla pieces of the installation go, relative to the radio panel (DZP_Gate's own
+// model). Built() is generated from a DayZ Editor save by tools/layout.py; the chamber in the
+// middle of the gantries is where players stand to jump, and where they arrive.
 class DZP_DecorPart
 {
 	string m_Type;
@@ -19,12 +19,15 @@ class DZP_DecorPart
 
 class DZP_Layout
 {
-	static const vector RING = "2.4 1.55 0";
-	static const float RING_SCALE = 1.35;		// the hatch is 2.2 m across; this makes it ~3 m
-	static const float TRIGGER_HALF_WIDTH = 1.1;
-	static const float TRIGGER_DEPTH = 0.9;		// either side of the plate
-	static const float TRIGGER_HEIGHT = 2.8;
-	static const float ARRIVAL_DISTANCE = 2.6;	// in front (+z) of the plate at the far gate
+	static const vector CHAMBER = "-6.342 0 1.384";		// the jump spot, on the chamber floor (y: see FIELD_*)
+	static const float FIELD_RADIUS = 1.5;		// standing this close to CHAMBER (horizontally) jumps
+	static const float FIELD_BELOW = 1.5;		// feet this far below the panel's floor level...
+	static const float FIELD_ABOVE = 3.0;		// ...to this far above it still count (uneven ground)
+	static const float EFFECT_HEIGHT = 1.4;		// burst, lightning flash and shimmer: this high over the floor
+	static const float FIELD_RADIUS_VEHICLE = 2.5;	// a vehicle's middle this close jumps it, crew and all
+	static const float VEHICLE_DROP = 0.5;		// vehicles arrive this high and settle onto the floor
+	static const float WALKER_RING = 0.9;		// a party on foot arrives spread round the middle...
+	static const float WALKER_RING_VEHICLE = 2.9;	// ...or round the vehicle that came with them
 
 	static const int CHANNELS = 20;
 	static const int FIRST_MHZ_X2 = 824;		// channel 0 = 412.0 MHz, 0.5 MHz steps
@@ -32,24 +35,24 @@ class DZP_Layout
 	static const int PLATES_NEEDED = 10;
 	static const int WIRE_NEEDED = 1;
 
-	// Built: the hatch ring (a wire grille) on a Livonia bunker blast-door leaf, standing
-	// between two equipment racks, a mast and a transformer behind, a cable drum beside the
-	// cabinet.
+	// Built: the installation as laid out in the editor (tools/layout.py import).
 	static void Built(array<ref DZP_DecorPart> parts)
 	{
-		parts.Insert(new DZP_DecorPart("StaticObj_Underground_Corridor_Main_Gate_L", Vector(RING[0], 0, RING[2] - 0.3), "0 0 0", 1));
-		parts.Insert(new DZP_DecorPart("StaticObj_Misc_ConcretePipe_Gate", RING, "0 0 0", RING_SCALE));
-		parts.Insert(new DZP_DecorPart("StaticObj_Furniture_radar_rack_quad", Vector(RING[0] - 1.9, 0, -0.4), "90 0 0", 1));
-		parts.Insert(new DZP_DecorPart("StaticObj_Furniture_radar_rack_quad", Vector(RING[0] + 1.9, 0, 0.4), "-90 0 0", 1));
-		parts.Insert(new DZP_DecorPart("StaticObj_Misc_Antenna", Vector(RING[0], 4.57, -2.6), "0 0 0", 1));
-		parts.Insert(new DZP_DecorPart("StaticObj_Misc_Transformer", Vector(RING[0], 1.45, -5.6), "90 0 0", 1));
-		parts.Insert(new DZP_DecorPart("StaticObj_Misc_Coil", "-2.4 1.1 -1.2", "0 0 0", 1));
+		parts.Insert(new DZP_DecorPart("StaticObj_Misc_DeconShower_Large", "-4.88 3.204 -2.735", "158.32 0 0", 1));
+		parts.Insert(new DZP_DecorPart("StaticObj_Misc_DeconShower_Large", "-10.669 3.153 1.91", "-79.103 0 0", 1));
+		parts.Insert(new DZP_DecorPart("StaticObj_Wall_Fen4_4", "-8.372 1.426 6.818", "-25.353 0 0", 1));
+		parts.Insert(new DZP_DecorPart("StaticObj_Wall_Fen4_4", "-0.846 1.495 0.656", "91.647 0 0", 1));
+		parts.Insert(new DZP_DecorPart("StaticObj_Wall_Fen4_4", "-10.126 1.344 -3.202", "-142.353 0 0", 1));
+		parts.Insert(new DZP_DecorPart("dz\\structures\\industrial\\tanks\\tank_small_gas.p3d", "-11.222 0.225 -4.787", "179.155 0 0", 1));
+		parts.Insert(new DZP_DecorPart("dz\\structures\\industrial\\power\\power_transformer_small.p3d", "-9.364 0.904 8.114", "-175.63 0 0", 1));
+		parts.Insert(new DZP_DecorPart("StaticObj_Misc_DeconShower_Large", "-3.478 3.266 4.977", "-142.353 0 0", 1));
+		parts.Insert(new DZP_DecorPart("DZP_DangerSign", "-0.711 2.345 0.653", "91.647 0 0", 1));
 	}
 
 	// Placed but not assembled: the blast door lies flat beside the cabinet.
 	static void Unbuilt(array<ref DZP_DecorPart> parts)
 	{
-		parts.Insert(new DZP_DecorPart("StaticObj_Underground_Corridor_Main_Gate_L", Vector(RING[0], 0.2, 0.5), "0 -90 0", 1));
+		parts.Insert(new DZP_DecorPart("StaticObj_Underground_Corridor_Main_Gate_L", "2.4 0.2 0.5", "0 -90 0", 1));
 	}
 
 	static string FrequencyText(int channel)

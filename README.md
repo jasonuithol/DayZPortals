@@ -1,63 +1,106 @@
 # DayZPortals
 
-Craftable portals for DayZ, after Valheim's: build two, tune them to the same frequency, and
-touching one plate puts you at the other. In DayZ they're the **Pereval transit apparatus
-(Object 47)**, a Soviet field gate that was clearly never meant to leave the test range.
-For now the gate is kit-bashed from vanilla models; a proper model can replace it later
-without touching the logic. Targets DayZ 1.30 (stable since 2026-10). Server and client.
+Portals for DayZ, after Valheim's - except these weren't built by players. They're the
+**Pereval transit apparatus (Object 47)**: secret Soviet installations left standing in the
+Czech countryside, three steel gantries round a chamber, a radio panel to tune them, and a
+rusting sign by the panel saying ОПАСНО - ВЗРЫВЧАТКА ЗАПРЕЩЕНА (DANGER - EXPLOSIVES
+PROHIBITED). Nobody remembers why. Probably because they are extremely dangerous.
 
-**Version 0.1.** Download the mod from the GitHub release, or build it yourself (below).
+Targets DayZ 1.30 (stable). Needed on the server and every client.
+
+**Version 0.2.** Download `@DayZPortals.zip` from the GitHub release, or build it yourself
+(below).
 
 ## Playing it
 
-1. **Crate it:** combine an *electronic repair kit* with *metal wire* in your hands. You get
-   a *Pereval apparatus (crated)*. It's heavy, so it goes in your hands only.
-2. **Place it** from your hands like a fence kit. The hologram shows the whole gate.
-3. **Fit the parts** into its inventory: 10 *metal sheets*, *metal wire*, a *truck battery*
-   and a *walkie-talkie*.
-4. **Assemble it** with a *hammer* in your hands. This uses up the parts. The ring stands
-   up, the mist comes on and the rim starts to spark.
-5. **Tune it:** look at the cabinet and use *Tune up* / *Tune down*. There are 20
-   channels, 412.0-421.5 MHz in 0.5 MHz steps. A new gate starts on a random channel.
-6. **Go through:** walk up to the plate, from either side. You come out 2.6 m in front of
-   another assembled gate on the same frequency. If more than two gates share a frequency,
-   the field picks one at random.
+- **Tune it** at the radio panel: *Tune up* / *Tune down*, 20 channels, 412.0-421.5 MHz in
+  0.5 MHz steps. The prompt remembers which way you last tuned. A gate with no partner on its
+  frequency is dead: no shimmer, no crackle, nothing happens when you step in.
+- **Step into the chamber** of a live gate. Lightning comes down on it; 0.7 s later everyone
+  standing in the chamber - on foot, plus one car or motorbike with everyone aboard - is at
+  another gate on the same frequency (picked at random if there are several). For five seconds
+  in between you see nothing but deep space, stars rushing past.
+- **It never tells you anything.** No notices, ever. If the far chamber is blocked by a vehicle
+  the gate simply doesn't strike.
+- **Whatever can go off, does**, in the lightning, wherever it is on you (or in the boot):
 
-The interlock won't send anyone carrying **ammunition or explosives**: loose rounds, loaded
-magazines, a chambered or internally loaded gun, grenades (smoke is fine), mines and
-charges. Empty guns and magazines are fine. *Crate* (hammer) packs a gate back into its
-crate: an empty unassembled gate loses nothing, an assembled one loses its parts.
+  | Carried in | What happens |
+  |---|---|
+  | Grenades, mines, plastic explosive, IEDs | They go off |
+  | A box of rounds | It goes up like a grenade - it kills |
+  | Loose rounds, magazines, loaded guns | 2 health per round (a full AK magazine: 60); the gun is ruined |
+  | Smoke grenades | They go off, 35 health |
+
+  Whoever survives still travels.
+- You arrive standing in the far chamber; it won't fire again until you've stepped out.
+
+## Placing gates (server admins)
+
+A gate is `DZP_Gate`, the radio panel; it builds the whole installation round itself. For now
+gates are placed from the mission's `init.c` - persistent, so place them once (or check for
+them first, as the test mission does):
+
+```c
+// assembled, on 412.5 MHz (channel 1), on the ground at x, z
+vector pos = Vector(4850, 0, 2440);
+pos[1] = GetGame().SurfaceY(pos[0], pos[2]);
+DZP_Gate gate = DZP_Gate.DZP_SpawnAssembled(pos, 1);
+gate.SetOrientation("90 0 0");	// which way it faces
+```
+
+Channels are 0-19 (channel *n* is 412.0 + 0.5 *n* MHz). Register `ServerFiles/types.xml` in the
+mission's `cfgeconomycore.xml` (a `<ce folder="...">` block), or the gates won't persist.
+
+Still to come: default placements for the four vanilla maps, placing gates with the DayZ
+Editor, and perhaps having to *complete* a derelict installation (bring an electronic repair
+kit, wire, barbed wire or an extension cord). The old crafting path (crate, parts, hammer)
+is still in the code but on its way out.
 
 ## Layout
 
 - `DayZPortals/` - the mod (packed as-is into a PBO, no binarising).
-  - `config.cpp` - `DZP_GateKit`, `DZP_GateHologram`, `DZP_Gate`.
-  - `Scripts/3_Game/DayZPortals/DZP_PPEShimmer.c` - the post-process requester for the
-    air shimmer.
+  - `config.cpp` - `DZP_Gate` (the radio panel), `DZP_DangerSign`, and the crafting leftovers.
+  - `data/` - the sign board model and textures, the starfields. `gui/` - the transit overlay.
+  - `Scripts/3_Game/DayZPortals/DZP_PPEShimmer.c` - the air-shimmer post-process requester.
   - `Scripts/4_World/DayZPortals/`
-    - `DZP_Layout.c` - where every vanilla piece sits relative to the cabinet, the trigger
-      box, the arrival point, the channels and the material counts. **Tune the look here.**
-    - `DZP_Decor.c` - spawns the pieces as local, non-persistent objects on the server
-      (for collision) and on each client (for looks).
-    - `DZP_Gate.c` - the gate: frequency, assembly, crating, persistence, ambience.
-    - `DZP_GateRegistry.c` - server: watches the plates (every 250 ms), runs the
-      contraband check and the jump.
-    - `DZP_GateKit.c` - the crate, and the placement hologram.
-    - `DZP_GateShimmer.c` - client: near an assembled gate the view wobbles round the
-      grille, stronger the closer you are. **Tune its strength here.**
-    - `DZP_Actions.c`, `DZP_Hooks.c` - tune/assemble/crate actions, the recipe, and the
-      vanilla hooks (`ActionConstructor`, `PluginRecipesManagerBase`, `Hammer`, `PlayerBase`).
-- `mission/portals.chernarusplus/` - the test mission (`init.c` has the headless checks and
-  the `-tour` camera walk).
-- `ServerFiles/types.xml` - CE entries. Without them the gates don't persist. Register the
-  file in the mission's `cfgeconomycore.xml` with a `<ce folder="...">` block.
+    - `DZP_Layout.c` - every piece of the installation relative to the radio panel, the
+      chamber, the field. `Built()` is generated by `tools/layout.py`.
+    - `DZP_Decor.c` - spawns the pieces (classes or bare `.p3d` models) as local objects, on
+      the server for collision and on each client for looks.
+    - `DZP_Gate.c` - the gate: frequency, persistence, ambience, the lightning;
+      `DZP_SpawnAssembled` for placing one.
+    - `DZP_GateRegistry.c` - server: watches the chambers, the strike, the jump (people and
+      vehicles); `DZP_Volatile` - what goes off, and how much it hurts.
+    - `DZP_TravelScreen.c` - client: the five seconds of deep space.
+    - `DZP_GateShimmer.c` - client: the air wobbling near a live gate.
+    - `DZP_Actions.c`, `DZP_Hooks.c` - tuning (and crafting) actions, vanilla hooks.
+- `tools/`
+  - `layout.py` - round-trips the installation through the DayZ Editor (below).
+  - `danger_sign.py`, `danger_board.py` - draw the sign and build its rusty, buckled board.
+  - `starfield.py` - draws the transit's starfields.
+- `art/` - the PNG sources of the textures.
+- `mission/portals.chernarusplus/` - the test mission: the headless checks and a play setup.
+- `ServerFiles/types.xml` - CE entries.
+
+## Changing the look
+
+The installation is designed in the DayZ Editor (Workshop 2250764298, with CF and Dabs
+Framework). Build it round a `Land_Radio_PanelPAS` - that's the gate - with the camera looking
+at it, save, then:
+
+```bash
+tools/layout.py import teleporter      # the editor save's name; rewrites DZP_Layout.Built()
+tools/layout.py export                 # the other way: today's layout as an editor import
+```
+
+The chamber (where you jump and arrive) is the middle of the three gantries
+(`StaticObj_Misc_DeconShower_Large`); the sign goes on the fence panel nearest the radio panel.
 
 ## Building and testing
 
 The build and test tooling lives in
-[DayZMissions](https://github.com/jasonuithol/DayZMissions), cloned next to this repo. The test
-mission is here, in `mission/portals.chernarusplus`. Link both into DayZMissions; the links are
-local only, not part of that repo:
+[DayZMissions](https://github.com/jasonuithol/DayZMissions), cloned next to this repo. Link the
+mod and the test mission into it (local links, not part of that repo):
 
 ```bash
 cd ~/Projects/DayZMissions
@@ -65,30 +108,10 @@ ln -s ../../DayZPortals/DayZPortals mods/DayZPortals
 ln -s ../../DayZPortals/mission/portals.chernarusplus missions/portals.chernarusplus
 ```
 
-The mission loads the mod as a `local` mod. It puts an assembled pair of gates on 412.0 MHz,
-one at Balota airfield where you spawn and one at the NW airfield. Next to you are two crated
-gates with the parts and a hammer, and an AKM with a loaded magazine to try the interlock.
-
 ```bash
-cd ~/Projects/DayZMissions
-tools/test.sh portals          # headless: builds, assembles, contraband check, a scripted jump
-KEEP=1 tools/test.sh portals   # same, on the last run's persistence (gates must survive)
-tools/run_server.sh portals    # play it: you spawn next to an assembled gate at Balota
-tools/run_client.sh portals    #   linked to one at the NW airfield, with kits and parts
+tools/test.sh portals          # headless: dead gates, parties, vehicles, what goes off, ...
+tools/run_server.sh portals    # play it: you spawn by a gate at Balota linked to one at the
+tools/run_client.sh portals    #   NW airfield, with every explosive, an AKM, an Ada and a bike
 ```
 
-`tools/build_mod.py mods/DayZPortals build` (from DayZMissions) builds and signs
-`build/@DayZPortals` on its own.
-
-## Not checked in game yet
-
-The headless test covers the logic. These need a client:
-
-- The look has been checked from the front and side (`screenshots/`), with
-  `tools/run_server.sh portals -tour=1`: the server walks the player round the gate every
-  12 s. Still unseen: the unbuilt gate (blast door lying flat), and the hologram.
-- The placement hologram, the attachment slots in the inventory screen and the action texts.
-- The mist, the sparks and the sounds (only a faint puff and sparks were visible) (all vanilla: contaminated-area gas, lever sparks,
-  bunker hum, defibrillator).
-- The jump on a real client. Server-side `SetPosition` is what admin tools use, so it
-  should be fine.
+`tools/test.sh` redeploys the mission folder - don't run it while `run_server.sh` is up.

@@ -2,10 +2,10 @@ class CfgPatches
 {
 	class DayZPortals
 	{
-		units[] = {"DZP_GateKit", "DZP_Gate"};
+		units[] = {"DZP_GateKit", "DZP_Gate", "DZP_DangerSign"};
 		weapons[] = {};
 		requiredVersion = 0.1;
-		requiredAddons[] = {"DZ_Data", "DZ_Scripts", "DZ_Gear_Camping", "DZ_Gear_Crafting", "DZ_Gear_Tools", "DZ_Radio", "DZ_Vehicles_Parts", "DZ_Structures_Furniture", "DZ_Structures_Industrial", "DZ_Structures_Military", "DZ_Structures_Bliss_Industrial", "DZ_Structures_Bliss_Underground", "DZ_Sounds_Effects", "DZ_Sounds_Bliss"};
+		requiredAddons[] = {"DZ_Data", "DZ_Scripts", "DZ_Gear_Camping", "DZ_Gear_Crafting", "DZ_Gear_Tools", "DZ_Radio", "DZ_Vehicles_Parts", "DZ_Structures_Furniture", "DZ_Structures_Industrial", "DZ_Structures_Military", "DZ_Structures_Bliss_Industrial", "DZ_Structures_Bliss_Underground", "DZ_Structures_Bliss_Military", "DZ_Structures_Bliss_Walls", "DZ_Structures_Signs", "DZ_Structures_Specific", "DZ_Sounds_Effects", "DZ_Sounds_Bliss"};
 	};
 };
 
@@ -37,6 +37,17 @@ class CfgMods
 class CfgVehicles
 {
 	class Inventory_Base;
+	class HouseNoDestruct;
+
+	// The installation's warning sign: DANGER, no explosives - a bare board (no posts) hung on the
+	// fence by the radio panel. Model by tools/danger_board.py, picture by tools/danger_sign.py.
+	// Not that the gate refuses explosives: the lightning sets them off.
+	class DZP_DangerSign: HouseNoDestruct
+	{
+		scope = 2;
+		displayName = "Pereval danger sign";
+		model = "DayZPortals\data\danger_board.p3d";
+	};
 
 	// Crated gate, crafted from an electronic repair kit and metal wire, deployed from the hands
 	class DZP_GateKit: Inventory_Base
@@ -68,7 +79,7 @@ class CfgVehicles
 	class DZP_GateHologram: Inventory_Base
 	{
 		scope = 1;
-		model = "DZ\structures\Furniture\radar_equipment\radar_panel.p3d";
+		model = "DZ\structures\specific\radio\radio_panelpas.p3d";
 		alignHologramToTerain = 0;
 		slopeTolerance = 0.3;
 	};
@@ -78,8 +89,8 @@ class CfgVehicles
 	{
 		scope = 2;
 		displayName = "Pereval transit apparatus";
-		descriptionShort = "Object 47. Tune two of them to the same frequency and touch the plate. Ammunition and explosives detonate in the field: the interlock will not let you through with them.";
-		model = "DZ\structures\Furniture\radar_equipment\radar_panel.p3d";
+		descriptionShort = "Object 47. Tune two of them to the same frequency and step into the chamber. Whatever you carry that can go off, will.";
+		model = "DZ\structures\specific\radio\radio_panelpas.p3d";
 		weight = 100000;
 		itemSize[] = {10, 10};
 		itemBehaviour = 0;

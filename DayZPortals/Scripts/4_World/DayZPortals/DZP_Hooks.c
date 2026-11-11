@@ -78,5 +78,14 @@ modded class Hammer
 
 modded class PlayerBase
 {
-	float m_DZP_NextGateTime;	// server: no gate before this tick time (after a jump or a refusal)
+	bool m_DZP_InField;	// server: standing in a chamber the field has already dealt with
+	bool m_DZP_TuneDown;	// client: last tuned a gate down, so "Tune down" is offered first
+
+	override void OnRPC(PlayerIdentity sender, int rpc_type, ParamsReadContext ctx)
+	{
+		super.OnRPC(sender, rpc_type, ctx);
+		if (rpc_type != DZP_TravelScreen.RPC_TRAVEL || GetGame().IsDedicatedServer())
+			return;
+		DZP_TravelScreen.Show();
+	}
 }
