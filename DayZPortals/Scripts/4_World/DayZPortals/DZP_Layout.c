@@ -1,6 +1,6 @@
 // Where the vanilla pieces of the installation go, relative to the radio panel (DZP_Gate's own
-// model). Built() is generated from a DayZ Editor save by tools/layout.py; the chamber in the
-// middle of the gantries is where players stand to jump, and where they arrive.
+// model). Installation() is generated from a DayZ Editor save by tools/layout.py; the chamber
+// in the middle of the gantries is where players stand to jump, and where they arrive.
 class DZP_DecorPart
 {
 	string m_Type;
@@ -32,11 +32,8 @@ class DZP_Layout
 	static const int CHANNELS = 20;
 	static const int FIRST_MHZ_X2 = 824;		// channel 0 = 412.0 MHz, 0.5 MHz steps
 
-	static const int PLATES_NEEDED = 10;
-	static const int WIRE_NEEDED = 1;
-
-	// Built: the installation as laid out in the editor (tools/layout.py import).
-	static void Built(array<ref DZP_DecorPart> parts)
+	// The installation as laid out in the editor (tools/layout.py import).
+	static void Installation(array<ref DZP_DecorPart> parts)
 	{
 		parts.Insert(new DZP_DecorPart("StaticObj_Misc_DeconShower_Large", "-4.88 3.204 -2.735", "158.32 0 0", 1));
 		parts.Insert(new DZP_DecorPart("StaticObj_Misc_DeconShower_Large", "-10.669 3.153 1.91", "-79.103 0 0", 1));
@@ -47,12 +44,6 @@ class DZP_Layout
 		parts.Insert(new DZP_DecorPart("dz\\structures\\industrial\\power\\power_transformer_small.p3d", "-9.364 0.904 8.114", "-175.63 0 0", 1));
 		parts.Insert(new DZP_DecorPart("StaticObj_Misc_DeconShower_Large", "-3.478 3.266 4.977", "-142.353 0 0", 1));
 		parts.Insert(new DZP_DecorPart("DZP_DangerSign", "-0.711 2.345 0.653", "91.647 0 0", 1));
-	}
-
-	// Placed but not assembled: the blast door lies flat beside the cabinet.
-	static void Unbuilt(array<ref DZP_DecorPart> parts)
-	{
-		parts.Insert(new DZP_DecorPart("StaticObj_Underground_Corridor_Main_Gate_L", "2.4 0.2 0.5", "0 -90 0", 1));
 	}
 
 	static string FrequencyText(int channel)

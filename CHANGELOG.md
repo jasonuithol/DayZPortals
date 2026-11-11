@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Crafting is gone: no crate, parts, hammer or unassembled gates. Every gate is the whole
+  installation from the moment it exists - including one placed with the DayZ Editor or a
+  server's object spawner.
+- `DZP_Gate.DZP_Spawn(pos, channel)` places a gate (`DZP_SpawnAssembled` still works).
+- Gates last ten years in the economy; saves from 0.1-0.2 still load.
+
 ## 0.2 - 2026-11-11
 
 The gates are no longer built by players: they are derelict Soviet installations.

@@ -4,16 +4,12 @@ class DZP_Decor
 {
 	protected ref array<Object> m_Objects = new array<Object>();
 
-	// attach = parent the pieces to the owner so they follow it, without collision (the
-	// placement hologram, whose placement raycasts must not hit them); otherwise they are
-	// put in world space once, solid (the gate never moves).
-	void Spawn(Object owner, array<ref DZP_DecorPart> parts, bool attach)
+	// the pieces go in world space once, solid (the gate never moves)
+	void Spawn(Object owner, array<ref DZP_DecorPart> parts)
 	{
 		Clear();
 		vector ownerOri = owner.GetOrientation();
-		int flags = ECE_LOCAL | ECE_KEEPHEIGHT | ECE_NOLIFETIME | ECE_NOPERSISTENCY_WORLD;
-		if (!attach)
-			flags |= ECE_CREATEPHYSICS;
+		int flags = ECE_LOCAL | ECE_KEEPHEIGHT | ECE_NOLIFETIME | ECE_NOPERSISTENCY_WORLD | ECE_CREATEPHYSICS;
 		for (int i = 0; i < parts.Count(); i++)
 		{
 			DZP_DecorPart part = parts[i];
@@ -29,23 +25,12 @@ class DZP_Decor
 				Print("[DayZPortals] can't create decor " + part.m_Type);
 				continue;
 			}
-			if (attach)
-			{
-				obj.SetOrientation(part.m_Ori);
-				obj.SetPosition(part.m_Pos);
-				owner.AddChild(obj, -1);
-			}
-			else
-			{
-				obj.SetOrientation(ownerOri + part.m_Ori);
-				obj.SetPosition(owner.ModelToWorld(part.m_Pos));
-			}
+			obj.SetOrientation(ownerOri + part.m_Ori);
+			obj.SetPosition(owner.ModelToWorld(part.m_Pos));
 			if (part.m_Scale != 1)
 				obj.SetScale(part.m_Scale);
 			m_Objects.Insert(obj);
 		}
-		if (attach)
-			owner.Update();
 	}
 
 	void Clear()

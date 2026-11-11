@@ -1,5 +1,5 @@
 // Portals
-// Test bed for our DayZPortals mod (~/Projects/DayZPortals): an assembled pair of Pereval
+// Test bed for our DayZPortals mod (~/Projects/DayZPortals): a pair of Pereval
 // gates on 412.0 MHz, one at Balota airfield where players spawn and one at the north-west
 // airfield; a spread of every vanilla explosive and a loaded AKM to carry into the lightning,
 // and an Ada and a motorbike to drive through.
@@ -22,7 +22,6 @@ class CustomMission: MissionServer
 
 	protected DZP_Gate m_GateA;
 	protected DZP_Gate m_GateB;
-	protected DZP_Gate m_GateC;
 	protected Transport m_Car;
 	protected Transport m_Bike;
 	protected PlayerBase m_Dummy;
@@ -44,7 +43,6 @@ class CustomMission: MissionServer
 	// --- -tour -----------------------------------------------------------------------------
 
 	protected int m_TourStep;
-	protected DZP_Gate m_GateUnbuilt;
 
 	void TourStep()
 	{
@@ -52,13 +50,6 @@ class CustomMission: MissionServer
 		GetGame().GetPlayers(players);
 		if (players.Count() == 0)
 			return;
-		if (!m_GateUnbuilt)
-		{
-			vector u = m_GateA.ModelToWorld("14 0 0");
-			u[1] = GetGame().SurfaceY(u[0], u[2]);
-			m_GateUnbuilt = DZP_Gate.Cast(GetGame().CreateObjectEx("DZP_Gate", u, ECE_PLACE_ON_SURFACE));
-			m_GateUnbuilt.SetOrientation(m_GateA.GetOrientation());
-		}
 		// eye position and point looked at, in gate A's model space
 		array<vector> eyes = new array<vector>();
 		array<vector> looks = new array<vector>();
@@ -68,7 +59,6 @@ class CustomMission: MissionServer
 		eyes.Insert(c + Vector(18, 0, 0));	looks.Insert(c);
 		eyes.Insert(c + Vector(0, 0, -18));	looks.Insert(c);
 		eyes.Insert(c + Vector(0, 0, 1));	looks.Insert("0 0 0");
-		eyes.Insert("16.4 0 7");	looks.Insert("16.4 0.5 1.8");
 		int i = m_TourStep - (m_TourStep / eyes.Count()) * eyes.Count();
 		m_TourStep++;
 		vector eye = m_GateA.ModelToWorld(eyes[i]);
@@ -91,16 +81,16 @@ class CustomMission: MissionServer
 			DZP_Gate g = reg.GetGate(i);
 			vector flat = g.GetPosition();
 			flat[1] = 0;
-			if (vector.Distance(flat, GATE_A) < 600 && !m_GateA && g.DZP_IsBuilt())
+			if (vector.Distance(flat, GATE_A) < 600 && !m_GateA)
 				m_GateA = g;
-			if (vector.Distance(flat, GATE_B) < 600 && !m_GateB && g.DZP_IsBuilt())
+			else if (vector.Distance(flat, GATE_B) < 600 && !m_GateB)
 				m_GateB = g;
 		}
 		Print("[Portals] " + reg.Count() + " gates persisted");
 		if (!m_GateA)
-			m_GateA = BuiltGate(Clearing(GATE_A), 0);
+			m_GateA = NewGate(Clearing(GATE_A), 0);
 		if (!m_GateB)
-			m_GateB = BuiltGate(Clearing(GATE_B), 0);
+			m_GateB = NewGate(Clearing(GATE_B), 0);
 
 		// things to carry into the lightning: every kind of explosive, smoke, ammo boxes and loose
 		// rounds, three of each, and a loaded rifle with spare magazines
@@ -188,17 +178,17 @@ class CustomMission: MissionServer
 		return EntityAI.Cast(GetGame().CreateObjectEx(type, pos, ECE_PLACE_ON_SURFACE));
 	}
 
-	DZP_Gate BuiltGate(vector pos, int channel)
+	DZP_Gate NewGate(vector pos, int channel)
 	{
 		pos[1] = GetGame().SurfaceY(pos[0], pos[2]);
-		DZP_Gate gate = DZP_Gate.DZP_SpawnAssembled(pos, channel);
+		DZP_Gate gate = DZP_Gate.DZP_Spawn(pos, channel);
 		if (!gate)
 		{
 			Print("[Portals] FAIL can't create DZP_Gate");
 			m_Failures++;
 			return null;
 		}
-		Print("[Portals] gate at " + gate.GetPosition() + " built " + gate.DZP_IsBuilt() + " on " + gate.DZP_GetFrequencyText() + ", " + gate.GetInventory().AttachmentCount() + " attachments left");
+		Print("[Portals] gate at " + gate.GetPosition() + " on " + gate.DZP_GetFrequencyText());
 		return gate;
 	}
 
@@ -219,26 +209,26 @@ class CustomMission: MissionServer
 
 	void TestBuild()
 	{
-		Check(m_GateA && m_GateA.DZP_IsBuilt(), "gate A assembled");
-		Check(m_GateB && m_GateB.DZP_IsBuilt(), "gate B assembled");
+		Check(m_GateA && m_GateB, "gates A and B");
+		Check(m_GateA.DZP_IsInstalled() && m_GateB.DZP_IsInstalled(), "A and B have their installations up");
 		Check(m_GateA.DZP_GetChannel() == m_GateB.DZP_GetChannel(), "A and B on the same channel (" + m_GateA.DZP_GetFrequencyText() + ")");
 		Check(DZP_Layout.FrequencyText(1) == "412.5 MHz" && DZP_Layout.FrequencyText(19) == "421.5 MHz", "frequency text " + DZP_Layout.FrequencyText(1) + " / " + DZP_Layout.FrequencyText(19));
+		Check(m_GateA.DZP_IsLinked() && m_GateB.DZP_IsLinked(), "A and B linked (both alive)");
 
-		// an unbuilt gate refuses to assemble until everything is there
-		vector p = m_GateA.ModelToWorld("0 0 40");
+		// created the plain way - as the DayZ Editor or a server's object spawner would - a gate
+		// puts its whole installation up by itself; alone on its frequency, it's dead
+		vector p = m_GateA.ModelToWorld("0 0 60");
 		p[1] = GetGame().SurfaceY(p[0], p[2]);
 		DZP_Gate c = DZP_Gate.Cast(GetGame().CreateObjectEx("DZP_Gate", p, ECE_PLACE_ON_SURFACE));
-		Check(!c.DZP_CanAssemble() && c.DZP_CanDismantle(), "empty gate: can't assemble, can crate");
-		c.GetInventory().CreateAttachment("MetalPlate");
-		Check(!c.DZP_CanAssemble() && !c.DZP_CanDismantle(), "partial gate: can't assemble or crate, missing '" + c.DZP_MissingText() + "'");
-		c.GetInventory().CreateAttachment("MetalWire");
-		c.GetInventory().CreateAttachment("TruckBattery");
-		c.GetInventory().CreateAttachment("PersonalRadio");
-		Check(c.DZP_CanAssemble(), "full gate can assemble");
-		c.DZP_Assemble();
-		Check(c.DZP_IsBuilt(), "full gate assembled");
-		Check(m_GateA.DZP_IsLinked() && m_GateB.DZP_IsLinked(), "A and B linked (both alive)");
-		m_GateC = c;
+		c.DZP_TuneTo(7);
+		GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(TestPlainGate, 1000, false, c);
+	}
+
+	void TestPlainGate(DZP_Gate c)
+	{
+		Check(c.DZP_IsInstalled(), "a plainly created gate puts its installation up");
+		Check(!c.DZP_IsLinked(), "alone on " + c.DZP_GetFrequencyText() + ", it's dead");
+		GetGame().ObjectDelete(c);
 
 		// a survivor with no one behind it, to walk through the gates
 		vector at = m_GateA.DZP_ChamberPoint(vector.Zero, 0.1);
@@ -249,14 +239,6 @@ class CustomMission: MissionServer
 			Finish();
 			return;
 		}
-		GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(TestMaterials, 1000, false);
-	}
-
-	void TestMaterials()
-	{
-		// used-up stacks are deleted a frame later, so this is checked here
-		Check(m_GateC.GetInventory().AttachmentCount() == 0, "assembly used up the materials (" + m_GateC.GetInventory().AttachmentCount() + " left)");
-		m_GateC.DZP_Dismantle();
 		GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(TestDeadGate, 1000, false);
 	}
 

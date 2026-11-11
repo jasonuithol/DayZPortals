@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Round-trip the gate's look (DZP_Layout.Built) through the DayZ Editor.
+"""Round-trip the gate's look (DZP_Layout.Installation) through the DayZ Editor.
 
   tools/layout.py import <file>  read an editor save (.dze, e.g. teleporter.dze) or an Object
-                                 Spawner export (.json) and rewrite Built() with every piece
+                                 Spawner export (.json) and rewrite Installation() with every piece
                                  within RADIUS m of the anchor, measured from it
   tools/layout.py export [x z y] write the built gate as Object Spawner JSON into the editor's
                                  folder, the anchor at x z on ground height y (default: the
@@ -94,7 +94,7 @@ def read_json(path):
 # --- DZP_Layout.c --------------------------------------------------------------------------
 
 def built_block(src):
-    start = src.index('static void Built(')
+    start = src.index('static void Installation(')
     open_ = src.index('{', start)
     close = src.index('\n\t}', open_)
     return open_ + 1, close
@@ -185,7 +185,7 @@ def import_(path):
         src = re.sub(r'static const vector CHAMBER = "[^"]+"', 'static const vector CHAMBER = "%s"' % vec(chamber), src)
         msg = '; CHAMBER = %s (middle of %d gantries)' % (vec(chamber), len(gantries))
     open(LAYOUT, 'w').write(src)
-    print('anchor %s at %s; Built() now has %d pieces, %d further than %g m left out%s'
+    print('anchor %s at %s; Installation() now has %d pieces, %d further than %g m left out%s'
           % (anchor[0], vec(origin), len(lines), skipped, RADIUS, msg))
 
 

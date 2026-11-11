@@ -1,4 +1,4 @@
-// Client: every frame, finds the nearest assembled, linked gate to the camera and shimmers the air
+// Client: every frame, finds the nearest live (linked) gate to the camera and shimmers the air
 // in its chamber (DZP_PPERequester_GateShimmer), stronger the closer you are.
 class DZP_GateShimmer
 {
@@ -44,7 +44,7 @@ class DZP_GateShimmer
 		for (int i = 0; i < s_Gates.Count(); i++)
 		{
 			DZP_Gate gate = s_Gates[i];
-			if (!gate || !gate.DZP_IsBuilt() || !gate.DZP_IsLinked())
+			if (!gate || !gate.DZP_IsLinked())
 				continue;
 			vector centre = gate.DZP_FieldCentre();
 			float d = vector.Distance(cam, centre);

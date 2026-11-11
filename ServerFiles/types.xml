@@ -1,28 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <!-- DayZPortals: register with a <ce folder="..."> entry in the mission's cfgeconomycore.xml.
-     Nominal 0: neither spawns as loot, they only come from crafting. Raise the kit's
-     nominal (and give it usage/value tags) to make crates findable. A placed gate lasts
-     45 days untouched, like vanilla base building. -->
+     Nominal 0: gates never spawn as loot, they are placed. A placed gate lasts ten years -
+     an installation, not a base - and saves its frequency. -->
 <types>
-	<type name="DZP_GateKit">
-		<nominal>0</nominal>
-		<lifetime>3888000</lifetime>
-		<restock>0</restock>
-		<min>0</min>
-		<quantmin>-1</quantmin>
-		<quantmax>-1</quantmax>
-		<cost>100</cost>
-		<flags count_in_cargo="0" count_in_hoarder="0" count_in_map="1" count_in_player="0" crafted="1" deloot="0"/>
-		<category name="tools"/>
-	</type>
 	<type name="DZP_Gate">
 		<nominal>0</nominal>
-		<lifetime>3888000</lifetime>
+		<lifetime>315360000</lifetime>
 		<restock>0</restock>
 		<min>0</min>
 		<quantmin>-1</quantmin>
 		<quantmax>-1</quantmax>
 		<cost>100</cost>
-		<flags count_in_cargo="0" count_in_hoarder="0" count_in_map="1" count_in_player="0" crafted="1" deloot="0"/>
+		<flags count_in_cargo="0" count_in_hoarder="0" count_in_map="1" count_in_player="0" crafted="0" deloot="0"/>
 	</type>
 </types>

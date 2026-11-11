@@ -129,13 +129,13 @@ class DZP_GateRegistry
 		return people;
 	}
 
-	// the assembled gate whose chamber pos is in (horizontally within radius of its middle)
+	// the gate whose chamber pos is in (horizontally within radius of its middle)
 	protected DZP_Gate GateAt(vector pos, float radius)
 	{
 		for (int i = 0; i < m_Gates.Count(); i++)
 		{
 			DZP_Gate gate = m_Gates[i];
-			if (!gate || !gate.DZP_IsBuilt())
+			if (!gate)
 				continue;
 			if (vector.DistanceSq(pos, gate.GetPosition()) > 900)
 				continue;
@@ -189,7 +189,7 @@ class DZP_GateRegistry
 		for (int i = 0; i < m_Gates.Count(); i++)
 		{
 			DZP_Gate gate = m_Gates[i];
-			if (gate && gate != from && gate.DZP_IsBuilt() && gate.DZP_GetChannel() == from.DZP_GetChannel())
+			if (gate && gate != from && gate.DZP_GetChannel() == from.DZP_GetChannel())
 				targets.Insert(gate);
 		}
 		if (targets.Count() == 0)
@@ -215,7 +215,7 @@ class DZP_GateRegistry
 			DZP_Volatile.Detonate(people[i]);
 	}
 
-	// gates with no other assembled gate on their frequency go dead (no shimmer, no sparks)
+	// gates with no other gate on their frequency go dead (no shimmer, no sparks)
 	void RefreshLinks()
 	{
 		for (int i = 0; i < m_Gates.Count(); i++)
@@ -227,9 +227,9 @@ class DZP_GateRegistry
 			for (int j = 0; j < m_Gates.Count() && !linked; j++)
 			{
 				DZP_Gate other = m_Gates[j];
-				linked = other && other != gate && other.DZP_IsBuilt() && other.DZP_GetChannel() == gate.DZP_GetChannel();
+				linked = other && other != gate && other.DZP_GetChannel() == gate.DZP_GetChannel();
 			}
-			gate.DZP_SetLinked(linked && gate.DZP_IsBuilt());
+			gate.DZP_SetLinked(linked);
 		}
 	}
 
@@ -239,7 +239,7 @@ class DZP_GateRegistry
 	{
 		array<EntityAI> boarded = m_Boarding.Get(from);
 		m_Boarding.Remove(from);
-		if (!from || !to || !to.DZP_IsBuilt())
+		if (!from || !to)
 			return;
 
 		// everyone who might be going: those who boarded, everyone else standing there

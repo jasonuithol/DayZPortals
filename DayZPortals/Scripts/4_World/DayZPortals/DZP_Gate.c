@@ -1,22 +1,21 @@
-// Pereval transit apparatus. Placed from a DZP_GateKit, assembled with a hammer once its
-// materials are attached, then tuned to one of DZP_Layout.CHANNELS frequencies. Touching the
-// chamber of an assembled gate sends you to another assembled gate on the same frequency
-// (DZP_GateRegistry does the watching and the jumping, on the server).
+// Pereval transit apparatus: the radio panel of a derelict Soviet installation, which it
+// builds round itself (DZP_Layout.Installation). Tuned to one of DZP_Layout.CHANNELS
+// frequencies; stepping into its chamber sends you to another gate on the same frequency
+// (DZP_GateRegistry does the watching and the jumping, on the server). Placed by missions and
+// admins (DZP_Spawn), or anywhere else something creates a DZP_Gate.
 class DZP_Gate extends ItemBase
 {
-	static const int STORE_VERSION = 1;
+	static const int STORE_VERSION = 2;	// 1 also saved an "assembled" flag (0.1-0.2, crafting)
 
 	protected int m_DZP_Channel;
-	protected bool m_DZP_Built;
 	protected int m_DZP_JumpFx;		// bumped by the server on every jump, clients play the burst
 	protected int m_DZP_JumpFxSeen;
-	protected bool m_DZP_Linked;		// another assembled gate shares the frequency (server keeps it)
+	protected bool m_DZP_Linked;		// another gate shares the frequency (server keeps it)
 	protected int m_DZP_StrikeFx;		// bumped by the server when someone sets it off: lightning
 	protected int m_DZP_StrikeFxSeen;
 	protected bool m_DZP_Synced;		// the first sync only catches up, it plays nothing
 
 	protected ref DZP_Decor m_DZP_Decor = new DZP_Decor();
-	protected bool m_DZP_DecorBuilt;
 
 	// client only
 	protected ref array<Particle> m_DZP_Vapour = new array<Particle>();
@@ -26,7 +25,6 @@ class DZP_Gate extends ItemBase
 	{
 		m_DZP_Channel = Math.RandomInt(0, DZP_Layout.CHANNELS);
 		RegisterNetSyncVariableInt("m_DZP_Channel", 0, DZP_Layout.CHANNELS - 1);
-		RegisterNetSyncVariableBool("m_DZP_Built");
 		RegisterNetSyncVariableInt("m_DZP_JumpFx", 0, 255);
 		RegisterNetSyncVariableInt("m_DZP_StrikeFx", 0, 255);
 		RegisterNetSyncVariableBool("m_DZP_Linked");
@@ -39,7 +37,7 @@ class DZP_Gate extends ItemBase
 			DZP_GateRegistry.Get().Register(this);
 		if (!GetGame().IsDedicatedServer())
 			DZP_GateShimmer.Register(this);
-		// the kit sets position and orientation right after creating us
+		// whoever creates us sets position and orientation right after
 		GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(DZP_RefreshDecor, 200, false);
 	}
 
@@ -78,7 +76,6 @@ class DZP_Gate extends ItemBase
 		super.OnStoreSave(ctx);
 		ctx.Write(STORE_VERSION);
 		ctx.Write(m_DZP_Channel);
-		ctx.Write(m_DZP_Built);
 	}
 
 	override bool OnStoreLoad(ParamsReadContext ctx, int version)
@@ -90,7 +87,8 @@ class DZP_Gate extends ItemBase
 			return false;
 		if (!ctx.Read(m_DZP_Channel))
 			return false;
-		if (!ctx.Read(m_DZP_Built))
+		bool assembled;
+		if (storeVersion < 2 && !ctx.Read(assembled))
 			return false;
 		return true;
 	}
@@ -103,11 +101,6 @@ class DZP_Gate extends ItemBase
 	}
 
 	// --- state -----------------------------------------------------------------------------
-
-	bool DZP_IsBuilt()
-	{
-		return m_DZP_Built;
-	}
 
 	int DZP_GetChannel()
 	{
@@ -134,24 +127,26 @@ class DZP_Gate extends ItemBase
 		DZP_Tune(channel - m_DZP_Channel);
 	}
 
-	//! Server: a ready-to-use gate - parts fitted, assembled and tuned to channel - for
-	//! missions, test beds and admin tools. Null if the gate can't be created.
-	static DZP_Gate DZP_SpawnAssembled(vector pos, int channel)
+	//! Server: a gate at pos (on the ground) tuned to channel, for missions, admins and test
+	//! beds; set its orientation afterwards. Null if it can't be created.
+	static DZP_Gate DZP_Spawn(vector pos, int channel)
 	{
 		DZP_Gate gate = DZP_Gate.Cast(GetGame().CreateObjectEx("DZP_Gate", pos, ECE_PLACE_ON_SURFACE));
-		if (!gate)
-			return null;
-		ItemBase plates = ItemBase.Cast(gate.GetInventory().CreateAttachment("MetalPlate"));
-		if (plates)
-			plates.SetQuantity(DZP_Layout.PLATES_NEEDED);
-		ItemBase wire = ItemBase.Cast(gate.GetInventory().CreateAttachment("MetalWire"));
-		if (wire)
-			wire.SetQuantity(DZP_Layout.WIRE_NEEDED);
-		gate.GetInventory().CreateAttachment("TruckBattery");
-		gate.GetInventory().CreateAttachment("PersonalRadio");
-		gate.DZP_Assemble();
-		gate.DZP_TuneTo(channel);
+		if (gate)
+			gate.DZP_TuneTo(channel);
 		return gate;
+	}
+
+	//! 0.2's name for DZP_Spawn (gates were assembled then)
+	static DZP_Gate DZP_SpawnAssembled(vector pos, int channel)
+	{
+		return DZP_Spawn(pos, channel);
+	}
+
+	// the installation round the panel is up (it goes up a moment after the gate is created)
+	bool DZP_IsInstalled()
+	{
+		return !m_DZP_Decor.IsEmpty();
 	}
 
 	bool DZP_IsLinked()
@@ -181,89 +176,6 @@ class DZP_Gate extends ItemBase
 		SetSynchDirty();
 	}
 
-	// --- assembly --------------------------------------------------------------------------
-
-	protected ItemBase DZP_Att(string slot)
-	{
-		return ItemBase.Cast(FindAttachmentBySlotName(slot));
-	}
-
-	bool DZP_HasAnyAttachment()
-	{
-		return GetInventory().AttachmentCount() > 0;
-	}
-
-	bool DZP_CanAssemble()
-	{
-		if (m_DZP_Built)
-			return false;
-		ItemBase plates = DZP_Att("Material_MetalSheets");
-		ItemBase wire = DZP_Att("Material_MetalWire");
-		ItemBase battery = DZP_Att("TruckBattery");
-		ItemBase radio = DZP_Att("WalkieTalkie");
-		if (!plates || !wire || !battery || !radio)
-			return false;
-		if (battery.IsRuined() || radio.IsRuined())
-			return false;
-		return plates.GetQuantity() >= DZP_Layout.PLATES_NEEDED && wire.GetQuantity() >= DZP_Layout.WIRE_NEEDED;
-	}
-
-	// what is still missing, for the inventory description and the action text
-	string DZP_MissingText()
-	{
-		array<string> missing = new array<string>();
-		ItemBase plates = DZP_Att("Material_MetalSheets");
-		int plateCount = 0;
-		if (plates)
-			plateCount = plates.GetQuantity();
-		if (plateCount < DZP_Layout.PLATES_NEEDED)
-			missing.Insert((DZP_Layout.PLATES_NEEDED - plateCount).ToString() + " metal sheets");
-		if (!DZP_Att("Material_MetalWire"))
-			missing.Insert("metal wire");
-		if (!DZP_Att("TruckBattery"))
-			missing.Insert("a truck battery");
-		if (!DZP_Att("WalkieTalkie"))
-			missing.Insert("a walkie-talkie");
-		string text = "";
-		for (int i = 0; i < missing.Count(); i++)
-		{
-			if (i > 0)
-				text += ", ";
-			text += missing[i];
-		}
-		return text;
-	}
-
-	void DZP_Assemble()
-	{
-		if (!DZP_CanAssemble())
-			return;
-		DZP_Att("Material_MetalSheets").AddQuantity(-DZP_Layout.PLATES_NEEDED);
-		DZP_Att("Material_MetalWire").AddQuantity(-DZP_Layout.WIRE_NEEDED);
-		GetGame().ObjectDelete(DZP_Att("TruckBattery"));
-		GetGame().ObjectDelete(DZP_Att("WalkieTalkie"));
-		m_DZP_Built = true;
-		SetSynchDirty();
-		DZP_RefreshDecor();
-		DZP_MarkJump();
-	}
-
-	// back into a crate; the materials that went into an assembled gate are lost
-	bool DZP_CanDismantle()
-	{
-		return m_DZP_Built || !DZP_HasAnyAttachment();
-	}
-
-	void DZP_Dismantle()
-	{
-		if (!DZP_CanDismantle())
-			return;
-		EntityAI kit = EntityAI.Cast(GetGame().CreateObjectEx("DZP_GateKit", GetPosition(), ECE_PLACE_ON_SURFACE));
-		if (kit)
-			MiscGameplayFunctions.TransferItemProperties(this, kit);
-		DeleteSafe();
-	}
-
 	// the gate stays where it was put: no carrying, no stashing
 	override bool CanPutInCargo(EntityAI parent)
 	{
@@ -280,18 +192,6 @@ class DZP_Gate extends ItemBase
 		return false;
 	}
 
-	override bool CanReceiveAttachment(EntityAI attachment, int slotId)
-	{
-		if (m_DZP_Built)
-			return false;
-		return super.CanReceiveAttachment(attachment, slotId);
-	}
-
-	override bool DisassembleOnLastDetach()
-	{
-		return false;
-	}
-
 	override void SetActions()
 	{
 		super.SetActions();
@@ -301,25 +201,16 @@ class DZP_Gate extends ItemBase
 
 	// --- looks -----------------------------------------------------------------------------
 
+	// the installation round the panel, once (the gate never moves)
 	void DZP_RefreshDecor()
 	{
-		if (!m_DZP_Decor.IsEmpty() && m_DZP_DecorBuilt == m_DZP_Built)
+		if (!m_DZP_Decor.IsEmpty())
 			return;
 		array<ref DZP_DecorPart> parts = new array<ref DZP_DecorPart>();
-		if (m_DZP_Built)
-			DZP_Layout.Built(parts);
-		else
-			DZP_Layout.Unbuilt(parts);
-		m_DZP_Decor.Spawn(this, parts, false);
-		m_DZP_DecorBuilt = m_DZP_Built;
-
+		DZP_Layout.Installation(parts);
+		m_DZP_Decor.Spawn(this, parts);
 		if (!GetGame().IsDedicatedServer())
-		{
-			if (m_DZP_Built)
-				DZP_StartAmbience();
-			else
-				DZP_StopAmbience();
-		}
+			DZP_StartAmbience();
 	}
 
 	// a point in the chamber, height metres over its floor (the ground there, not the panel's)
@@ -378,8 +269,6 @@ class DZP_Gate extends ItemBase
 	// a random crackle somewhere up in the gantries round the chamber
 	protected void DZP_Spark()
 	{
-		if (!m_DZP_Built)
-			return;
 		// a dead gate (nothing on its frequency) doesn't crackle; keep checking
 		if (m_DZP_Linked)
 			DZP_SparkNow();
@@ -399,7 +288,7 @@ class DZP_Gate extends ItemBase
 
 	protected void DZP_PlayBurst()
 	{
-		if (GetGame().IsDedicatedServer() || !m_DZP_Built)
+		if (GetGame().IsDedicatedServer())
 			return;
 		vector centre = DZP_FieldCentre();
 		ParticleManager.GetInstance().PlayInWorld(ParticleList.BARBED_WIRE_SPARKS, centre);
@@ -417,7 +306,7 @@ class DZP_Gate extends ItemBase
 	// weather uses), a flash and a near thunderclap
 	protected void DZP_PlayStrike()
 	{
-		if (GetGame().IsDedicatedServer() || !m_DZP_Built)
+		if (GetGame().IsDedicatedServer())
 			return;
 		vector floor = DZP_ChamberPoint(vector.Zero, 0);
 		float yaw = Math.RandomFloat(0, 360);
