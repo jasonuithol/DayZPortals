@@ -1,5 +1,5 @@
 // Portals
-// Test bed for our DayzPortals mod (~/Projects/DayzPortals): an assembled pair of Pereval
+// Test bed for our DayZPortals mod (~/Projects/DayZPortals): an assembled pair of Pereval
 // gates on 412.0 MHz, one at Balota airfield where players spawn and one at the north-west
 // airfield, plus everything needed to crate, place and assemble two more (and an AKM with
 // a loaded magazine to try the interlock with).

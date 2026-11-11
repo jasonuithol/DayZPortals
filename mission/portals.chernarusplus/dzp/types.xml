@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
-<!-- DayzPortals: register with a <ce folder="..."> entry in the mission's cfgeconomycore.xml.
+<!-- DayZPortals: register with a <ce folder="..."> entry in the mission's cfgeconomycore.xml.
      Nominal 0: neither spawns as loot, they only come from crafting. Raise the kit's
      nominal (and give it usage/value tags) to make crates findable. A placed gate lasts
      45 days untouched, like vanilla base building. -->

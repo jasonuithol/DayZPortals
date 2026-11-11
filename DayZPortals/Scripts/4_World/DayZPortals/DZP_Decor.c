@@ -20,7 +20,7 @@ class DZP_Decor
 			Object obj = GetGame().CreateObjectEx(part.m_Type, owner.ModelToWorld(part.m_Pos), flags);
 			if (!obj)
 			{
-				Print("[DayzPortals] can't create decor " + part.m_Type);
+				Print("[DayZPortals] can't create decor " + part.m_Type);
 				continue;
 			}
 			if (attach)

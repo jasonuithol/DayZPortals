@@ -1,6 +1,6 @@
 class CfgPatches
 {
-	class DayzPortals
+	class DayZPortals
 	{
 		units[] = {"DZP_GateKit", "DZP_Gate"};
 		weapons[] = {};
@@ -11,10 +11,10 @@ class CfgPatches
 
 class CfgMods
 {
-	class DayzPortals
+	class DayZPortals
 	{
-		dir = "DayzPortals";
-		name = "DayzPortals";
+		dir = "DayZPortals";
+		name = "DayZPortals";
 		type = "mod";
 		dependencies[] = {"Game", "World"};
 
@@ -23,12 +23,12 @@ class CfgMods
 			class gameScriptModule
 			{
 				value = "";
-				files[] = {"DayzPortals/Scripts/3_Game"};
+				files[] = {"DayZPortals/Scripts/3_Game"};
 			};
 			class worldScriptModule
 			{
 				value = "";
-				files[] = {"DayzPortals/Scripts/4_World"};
+				files[] = {"DayZPortals/Scripts/4_World"};
 			};
 		};
 	};

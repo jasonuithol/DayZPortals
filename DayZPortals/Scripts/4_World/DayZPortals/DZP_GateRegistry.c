@@ -130,7 +130,7 @@ class DZP_GateRegistry
 		string who = "?";
 		if (player.GetIdentity())
 			who = player.GetIdentity().GetName();
-		Print("[DayzPortals] " + who + " jumped " + from.GetPosition() + " -> " + to.GetPosition() + " on " + from.DZP_GetFrequencyText());
+		Print("[DayZPortals] " + who + " jumped " + from.GetPosition() + " -> " + to.GetPosition() + " on " + from.DZP_GetFrequencyText());
 	}
 
 	protected void Notify(PlayerBase player, string title, string text)

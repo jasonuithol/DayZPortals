@@ -1,2 +1,2 @@
-# ours, built from mods/DayzPortals (a symlink to ~/Projects/DayzPortals/DayzPortals)
-local @DayzPortals
+# ours, built from mods/DayZPortals (a symlink to ~/Projects/DayZPortals/DayZPortals)
+local @DayZPortals

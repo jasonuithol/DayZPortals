@@ -1,4 +1,4 @@
-# DayzPortals
+# DayZPortals
 
 Craftable portals for DayZ, after Valheim's: build two, tune them to the same frequency, and
 touching one plate puts you at the other. In DayZ they're the **Pereval transit apparatus
@@ -6,7 +6,7 @@ touching one plate puts you at the other. In DayZ they're the **Pereval transit 
 For now the gate is kit-bashed from vanilla models; a proper model can replace it later
 without touching the logic. Targets DayZ 1.30 (stable since 2026-10). Server and client.
 
-**Version 0.1.** Download `@DayzPortals.zip` from the release, or build it yourself (below).
+**Version 0.1.** Download the mod from the GitHub release, or build it yourself (below).
 
 ## Playing it
 
@@ -30,11 +30,11 @@ crate: an empty unassembled gate loses nothing, an assembled one loses its parts
 
 ## Layout
 
-- `DayzPortals/` - the mod (packed as-is into a PBO, no binarising).
+- `DayZPortals/` - the mod (packed as-is into a PBO, no binarising).
   - `config.cpp` - `DZP_GateKit`, `DZP_GateHologram`, `DZP_Gate`.
-  - `Scripts/3_Game/DayzPortals/DZP_PPEShimmer.c` - the post-process requester for the
+  - `Scripts/3_Game/DayZPortals/DZP_PPEShimmer.c` - the post-process requester for the
     air shimmer.
-  - `Scripts/4_World/DayzPortals/`
+  - `Scripts/4_World/DayZPortals/`
     - `DZP_Layout.c` - where every vanilla piece sits relative to the cabinet, the trigger
       box, the arrival point, the channels and the material counts. **Tune the look here.**
     - `DZP_Decor.c` - spawns the pieces as local, non-persistent objects on the server
@@ -61,8 +61,8 @@ local only, not part of that repo:
 
 ```bash
 cd ~/Projects/DayZMissions
-ln -s ../../DayzPortals/DayzPortals mods/DayzPortals
-ln -s ../../DayzPortals/mission/portals.chernarusplus missions/portals.chernarusplus
+ln -s ../../DayZPortals/DayZPortals mods/DayZPortals
+ln -s ../../DayZPortals/mission/portals.chernarusplus missions/portals.chernarusplus
 ```
 
 The mission loads the mod as a `local` mod. It puts an assembled pair of gates on 412.0 MHz,
@@ -77,8 +77,8 @@ tools/run_server.sh portals    # play it: you spawn next to an assembled gate at
 tools/run_client.sh portals    #   linked to one at the NW airfield, with kits and parts
 ```
 
-`tools/build_mod.py mods/DayzPortals build` (from DayZMissions) builds and signs
-`build/@DayzPortals` on its own.
+`tools/build_mod.py mods/DayZPortals build` (from DayZMissions) builds and signs
+`build/@DayZPortals` on its own.
 
 ## Not checked in game yet
 
