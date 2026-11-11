@@ -16,6 +16,8 @@ class DZP_Gate extends ItemBase
 	protected bool m_DZP_Synced;		// the first sync only catches up, it plays nothing
 
 	protected ref DZP_Decor m_DZP_Decor = new DZP_Decor();
+	protected vector m_DZP_DecorAt;		// where the gate was when its installation went up
+	protected vector m_DZP_DecorOri;
 
 	// client only
 	protected ref array<Particle> m_DZP_Vapour = new array<Particle>();
@@ -39,6 +41,9 @@ class DZP_Gate extends ItemBase
 			DZP_GateShimmer.Register(this);
 		// whoever creates us sets position and orientation right after
 		GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(DZP_RefreshDecor, 200, false);
+		// offline (the DayZ Editor) gates get dragged about: the installation follows
+		if (!GetGame().IsMultiplayer())
+			GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(DZP_FollowMoves, 500, true);
 	}
 
 	override void EEDelete(EntityAI parent)
@@ -48,6 +53,8 @@ class DZP_Gate extends ItemBase
 			DZP_GateRegistry.Get().Unregister(this);
 		if (!GetGame().IsDedicatedServer())
 			DZP_GateShimmer.Unregister(this);
+		if (GetGame())
+			GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).Remove(DZP_FollowMoves);
 		m_DZP_Decor.Clear();
 		DZP_StopAmbience();
 	}
@@ -201,7 +208,7 @@ class DZP_Gate extends ItemBase
 
 	// --- looks -----------------------------------------------------------------------------
 
-	// the installation round the panel, once (the gate never moves)
+	// the installation round the panel, once (in play the gate never moves)
 	void DZP_RefreshDecor()
 	{
 		if (!m_DZP_Decor.IsEmpty())
@@ -209,8 +216,22 @@ class DZP_Gate extends ItemBase
 		array<ref DZP_DecorPart> parts = new array<ref DZP_DecorPart>();
 		DZP_Layout.Installation(parts);
 		m_DZP_Decor.Spawn(this, parts);
+		m_DZP_DecorAt = GetPosition();
+		m_DZP_DecorOri = GetOrientation();
 		if (!GetGame().IsDedicatedServer())
 			DZP_StartAmbience();
+	}
+
+	// offline only: rebuild the installation where the gate has been moved to
+	protected void DZP_FollowMoves()
+	{
+		if (m_DZP_Decor.IsEmpty())
+			return;
+		if (vector.DistanceSq(GetPosition(), m_DZP_DecorAt) < 0.0001 && vector.DistanceSq(GetOrientation(), m_DZP_DecorOri) < 0.0001)
+			return;
+		m_DZP_Decor.Clear();
+		DZP_StopAmbience();
+		DZP_RefreshDecor();
 	}
 
 	// a point in the chamber, height metres over its floor (the ground there, not the panel's)
